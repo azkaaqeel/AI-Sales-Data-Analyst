@@ -1,0 +1,83 @@
+- name: Total Sales Amount
+  formula: "(df['selling_price'] * df['quantity']).sum()"
+  columns: ["selling_price", "quantity"]
+  type: numeric
+  description: "Total money collected from all sales transactions."
+  dependencies: []
+
+- name: Total Orders
+  formula: "df['order_id'].nunique()"
+  columns: ["order_id"]
+  type: numeric
+  description: "Total number of unique customer orders placed."
+  dependencies: []
+
+- name: Total Units Sold
+  formula: "df['quantity'].sum()"
+  columns: ["quantity"]
+  type: numeric
+  description: "Total number of individual items sold across all transactions."
+  dependencies: []
+
+- name: Average Order Value
+  formula: "kpis['Total Sales Amount'] / kpis['Total Orders']"
+  columns: ["total_sales_amount", "total_orders"]
+  type: ratio
+  description: "Average sales amount per customer order, indicating typical customer spend."
+  dependencies: ["Total Sales Amount", "Total Orders"]
+
+- name: Average Selling Price per Item
+  formula: "df['selling_price'].mean()"
+  columns: ["selling_price"]
+  type: numeric
+  description: "Average selling price across all sold products, useful for pricing trend analysis."
+  dependencies: []
+
+- name: Average Discount Percentage
+  formula: "df['discount_percent'].mean()"
+  columns: ["discount_percent"]
+  type: percentage
+  description: "Average percentage discount applied across all orders."
+  dependencies: []
+
+- name: Discount Utilization Rate
+  formula: "(df[df['discount_percent'] > 0]['order_id'].nunique() / df['order_id'].nunique()) * 100"
+  columns: ["discount_percent", "order_id"]
+  type: percentage
+  description: "Percentage of orders where a discount was applied, showing promotion dependency."
+  dependencies: []
+
+- name: Sales per Category
+  formula: "df.groupby('category').apply(lambda x: (x['selling_price'] * x['quantity']).sum()).to_dict()"
+  columns: ["category", "selling_price", "quantity"]
+  type: categorical
+  description: "Total sales value per fashion category (e.g., dresses, shoes, accessories)."
+  dependencies: ["Total Sales Amount"]
+
+- name: Sales per Channel
+  formula: "df.groupby('channel').apply(lambda x: (x['selling_price'] * x['quantity']).sum()).to_dict()"
+  columns: ["channel", "selling_price", "quantity"]
+  type: categorical
+  description: "Total sales segmented by sales channel (e.g., online, in-store)."
+  dependencies: ["Total Sales Amount"]
+
+- name: Category Contribution Percentage
+  formula: "{cat: (val / kpis['Total Sales Amount']) * 100 for cat, val in kpis['Sales per Category'].items()}"
+  columns: ["category_sales", "total_sales_amount"]
+  type: percentage
+  description: "Proportion of total sales contributed by each product category."
+  dependencies: ["Sales per Category", "Total Sales Amount"]
+
+- name: Top-Selling Category
+  formula: "max(kpis['Sales per Category'], key=kpis['Sales per Category'].get)"
+  columns: ["category", "selling_price", "quantity"]
+  type: categorical
+  description: "Identifies which fashion category generated the highest total sales."
+  dependencies: ["Sales per Category"]
+
+- name: Top-Selling Product
+  formula: "df.groupby('product').apply(lambda x: (x['selling_price'] * x['quantity']).sum()).idxmax()"
+  columns: ["product", "selling_price", "quantity"]
+  type: categorical
+  description: "Identifies the single product with the highest total sales volume."
+  dependencies: ["Total Sales Amount"]
