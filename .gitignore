@@ -1,0 +1,79 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+logs/
+
+# Test & temp
+.pytest_cache/
+*.pyc
+test_*.py
+debug_*.py
+*.md.backup
+
+# Node.js / Frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Data files (optional - uncomment to exclude CSV files)
+# *.csv
+# *.xlsx
+
+# Prophet cache
+prophet_cache/
+
+# Temporary files
+*.tmp
+*.temp
+temp_*

@@ -1,0 +1,5 @@
+{
+  "name": "AI Sales Data Analyst",
+  "description": "Upload your sales dataset (CSV) to have AI clean it, identify key KPIs, analyze trends, generate a comprehensive report with insights and recommendations, and provide a chatbot to answer questions about your data.",
+  "requestFramePermissions": []
+}

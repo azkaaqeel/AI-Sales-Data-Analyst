@@ -1,0 +1,13 @@
+customer_reference_id,item_purchased,purchase_amount_(usd),date_purchase,review_rating,payment_method
+10123,Dress,89.99,2023-07-05,4.0,Credit Card
+10124,Jeans,55.49,07/06/2023,5.0,PayPal
+10125,Blouse,,2023/07/07,,Credit Card
+10126,Shoes,-75.0,2023-07-08,3.0,Debit Card
+10127,Handbag,120.0,2023-07-09,,Credit Card
+10128,Jeans,55.49,07-10-2023,5.0,PayPal
+10129,Top,39.99,2023-07-11,4.0,Cash
+10130,Sneakers,,2023-07-11,5.0,Credit Card
+10127,Handbag,120.0,2023-07-09,,Credit Card
+10131,Coat,200.0,2023-07-12,,Debit Card
+10132,Skirt,65.0,2023/13/07,3.0,Credit Card
+10133,Dress,89.99,2023-07-14,,PayPal
