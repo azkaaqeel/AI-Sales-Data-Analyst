@@ -23,6 +23,7 @@ const App: React.FC = () => {
   
   // Phase 3: Report
   const [report, setReport] = useState<Report | null>(null);
+  const [reportRawData, setReportRawData] = useState<{ insights: string; trends: any[] } | null>(null);
   
   // Chatbot
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -90,10 +91,21 @@ const App: React.FC = () => {
       return;
     }
 
+    console.log('🔍 FRONTEND: Generating report with:');
+    console.log('  - Selected KPIs:', selectedKpis);
+    console.log('  - Custom KPIs:', customKpis);
+
     setAppState(AppState.GENERATING_REPORT);
     try {
       const response = await generateReport(fileId, selectedKpis, customKpis);
+      console.log('🔍 FRONTEND: Got response, report KPIs:', response.report?.kpis?.map(k => k.name));
       setReport(response.report);
+      
+      // Store raw data for PDF generation
+      setReportRawData({
+        insights: response.insights || '',
+        trends: response.trends || []
+      });
       
       const welcomeMessage: ChatMessage = {
         sender: 'ai',
@@ -138,6 +150,7 @@ const App: React.FC = () => {
     setCleaningPlan(null);
     setDetectedKpis([]);
     setReport(null);
+    setReportRawData(null);
     setChatHistory([]);
     setError(null);
     setAppState(AppState.IDLE);
@@ -158,25 +171,21 @@ const App: React.FC = () => {
         return <ProcessingView title="Cleaning Your Data..." steps={["Applying selected steps...", "Standardizing formats...", "Handling missing values...", "Detecting KPIs..."]} />;
       
       case AppState.KPI_SELECTION:
-        return <KPISelectionWithCustom detectedKpis={detectedKpis} onGenerateReport={handleGenerateReport} />;
+        return <KPISelectionWithCustom detectedKpis={detectedKpis} fileId={fileId} onGenerateReport={handleGenerateReport} />;
       
       case AppState.GENERATING_REPORT:
         return <ProcessingView title="Generating Your Report..." steps={["Calculating KPIs...", "Analyzing trends...", "Generating forecasts...", "Compiling insights...", "Finalizing report..."]} />;
       
       case AppState.REPORT_READY:
-        if (report) {
+        if (report && reportRawData) {
           return (
-            <div className="flex flex-col lg:flex-row gap-8 w-full max-w-screen-2xl mx-auto p-4 md:p-8">
-              <div className="lg:w-2/3">
-                <ReportView report={report} onReset={handleReset} />
-              </div>
-              <div className="lg:w-1/3 lg:sticky lg:top-8 self-start">
-                <Chatbot 
-                  messages={chatHistory} 
-                  onSendMessage={handleSendMessage} 
-                  isLoading={isChatbotLoading} 
-                />
-              </div>
+            <div className="w-full max-w-screen-2xl mx-auto p-4 md:p-8">
+              <ReportView 
+                report={report} 
+                onReset={handleReset}
+                fileId={fileId}
+                rawReportData={reportRawData}
+              />
             </div>
           );
         }

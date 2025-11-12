@@ -1,8 +1,9 @@
 """Generate PDF reports from markdown insights and trend images."""
 from io import BytesIO
 from pathlib import Path
+from typing import Union, List
+import re  # Import re FIRST
 import markdown
-import re
 from datetime import datetime
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -54,8 +55,8 @@ def parse_markdown_table(table_text):
 
 def create_pdf_report(
     markdown_text: str,
-    trend_images: list[BytesIO],
-    output_path: str | Path,
+    trend_images: List[BytesIO],
+    output_path: Union[str, Path, BytesIO],
     title: str = "Business Performance Report",
     page_size=A4,
     styles_config: dict = None,
@@ -133,8 +134,11 @@ def create_pdf_report(
     styles_config = {**default_styles, **(styles_config or {})}
     image_config = {**default_image, **(image_config or {})}
     layout_config = {**default_layout, **(layout_config or {})}
-    # Convert Path to string if needed
-    output_path = str(output_path)
+    
+    # Handle output_path: convert Path to string, but keep BytesIO as-is
+    if isinstance(output_path, Path):
+        output_path = str(output_path)
+    # BytesIO and str paths are passed directly to SimpleDocTemplate
     
     # Extract sections from markdown
     sections = extract_sections(markdown_text)
@@ -180,60 +184,181 @@ def create_pdf_report(
         story.append(Paragraph(sections['Executive Summary'], styles['Normal']))
         story.append(Spacer(1, 0.25*inch))
     
-    # Add trend images with captions
-    for i, img_data in enumerate(trend_images, 1):
-        img = Image(img_data, width=6*inch, height=4*inch)
-        story.append(img)
-        caption = f"Figure {i}: {'Sales Trend' if i == 1 else 'Components Analysis'}"
-        story.append(Paragraph(caption, styles['Italic']))
+    # What This Means For Your Business
+    if 'What This Means For Your Business' in sections:
+        story.append(Paragraph('What This Means For Your Business', styles['Heading2']))
+        story.append(Spacer(1, 0.15*inch))
+        
+        content = sections['What This Means For Your Business']
+        # Split by ### headers
+        subsections = re.split(r'###\s+', content)
+        
+        for subsection in subsections:
+            if not subsection.strip():
+                continue
+            
+            lines = subsection.strip().split('\n')
+            if len(lines) > 0:
+                # First line is the header
+                header = lines[0].strip()
+                body = '\n'.join(lines[1:]).strip()
+                
+                if header and body:
+                    story.append(Paragraph(f"<b>{header}</b>", styles['Normal']))
+                    story.append(Spacer(1, 0.05*inch))
+                    story.append(Paragraph(body, styles['Normal']))
+                    story.append(Spacer(1, 0.15*inch))
+        
         story.append(Spacer(1, 0.25*inch))
     
-    # KPI Table
-    if any(k.startswith('Table') for k in sections.keys()):
-        table_section = next(s for s in sections.keys() if s.startswith('Table'))
-        if sections[table_section]:
-            table_data = parse_markdown_table(sections[table_section])
-            if table_data:
-                # Create Table
-                t = Table(table_data)
-                t.setStyle(TableStyle([
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2C3E50')),
-                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (-1, 0), 11),
-                    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                    ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-                    ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                    ('FONTSIZE', (0, 1), (-1, -1), 10),
-                    ('GRID', (0, 0), (-1, -1), 1, colors.grey),
-                    ('ALIGN', (1, 1), (-1, -1), 'RIGHT'),
-                    ('ALIGN', (0, 0), (0, -1), 'LEFT'),
-                ]))
-                story.append(t)
+    # Trends Analysis with explanations
+    if 'Trends Analysis' in sections:
+        story.append(Paragraph('Trends Analysis', styles['Heading2']))
+        story.append(Spacer(1, 0.15*inch))
+        
+        content = sections['Trends Analysis']
+        # Split by ### headers (chart titles)
+        chart_sections = re.split(r'###\s+', content)
+        
+        chart_index = 0
+        for section in chart_sections:
+            if not section.strip():
+                continue
+            
+            lines = section.strip().split('\n')
+            if len(lines) > 0:
+                chart_title = lines[0].strip()
+                
+                # Add chart title
+                story.append(Paragraph(f"<b>{chart_title}</b>", styles['Heading3']))
+                story.append(Spacer(1, 0.1*inch))
+                
+                # Add chart description and analysis
+                for line in lines[1:]:
+                    line = line.strip()
+                    if line and not line.startswith('*[See Chart'):
+                        story.append(Paragraph(line, styles['Normal']))
+                        story.append(Spacer(1, 0.05*inch))
+                
+                # Add corresponding trend image if available
+                if chart_index < len(trend_images):
+                    try:
+                        img = Image(trend_images[chart_index], width=6*inch, height=3.5*inch)
+                        story.append(Spacer(1, 0.1*inch))
+                        story.append(img)
+                        story.append(Spacer(1, 0.05*inch))
+                        story.append(Paragraph(f"<i>Figure {chart_index + 1}: {chart_title}</i>", styles['Italic']))
+                        chart_index += 1
+                    except:
+                        pass
+                
+                story.append(Spacer(1, 0.3*inch))
+    else:
+        # Fallback: Add trend images with captions if no Trends Analysis section
+        for i, img_data in enumerate(trend_images, 1):
+            try:
+                img = Image(img_data, width=6*inch, height=4*inch)
+                story.append(img)
+                caption = f"Figure {i}: Trend Analysis {i}"
+                story.append(Paragraph(caption, styles['Italic']))
                 story.append(Spacer(1, 0.25*inch))
+            except:
+                pass
     
-    # KPI Insights
-    if 'KPI Insights' in sections:
-        story.append(Paragraph('KPI Insights', styles['Heading2']))
-        insights_text = sections['KPI Insights']
-        # Split into paragraphs and format
-        for paragraph in insights_text.split('\n\n'):
-            story.append(Paragraph(paragraph, styles['Normal']))
-            story.append(Spacer(1, 0.1*inch))
+    # KPI Table - handle multiple section name variations
+    kpi_table_sections = ['Key Performance Indicators', 'KPI Table', 'Table']
+    kpi_section = None
+    for section_name in kpi_table_sections:
+        if section_name in sections:
+            kpi_section = section_name
+            break
+        # Also check if any section starts with these names
+        for key in sections.keys():
+            if key.startswith(section_name):
+                kpi_section = key
+                break
+    
+    if kpi_section and sections[kpi_section]:
+        story.append(Paragraph('Key Performance Indicators', styles['Heading2']))
+        story.append(Spacer(1, 0.15*inch))
+        
+        table_data = parse_markdown_table(sections[kpi_section])
+        if table_data:
+            # Create Table with better formatting
+            t = Table(table_data, colWidths=[2.5*inch, 1.5*inch, 2.5*inch])
+            t.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4F46E5')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, 0), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('TOPPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
+                ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 1), (-1, -1), 9),
+                ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+                ('ALIGN', (1, 1), (-1, -1), 'RIGHT'),
+                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 8),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                ('TOPPADDING', (0, 1), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+            ]))
+            story.append(t)
+            story.append(Spacer(1, 0.4*inch))
+    
+    # Actionable Insights - handle multiple section name variations
+    insights_sections = ['Actionable Insights', 'Key Insights', 'KPI Insights', 'Insights']
+    insights_section = None
+    for section_name in insights_sections:
+        if section_name in sections:
+            insights_section = section_name
+            break
+    
+    if insights_section:
+        story.append(Paragraph('Actionable Insights', styles['Heading2']))
+        story.append(Spacer(1, 0.15*inch))
+        insights_text = sections[insights_section]
+        
+        # Split by numbered items (1. 2. 3.)
+        import re
+        items = re.split(r'\n\s*\d+\.\s+', insights_text)
+        for i, item in enumerate(items):
+            if item.strip():
+                # Format as numbered list with better spacing
+                text = item.strip()
+                if i > 0:  # Skip first empty item
+                    story.append(Paragraph(f"<b>{i}.</b> {text}", styles['Normal']))
+                    story.append(Spacer(1, 0.15*inch))
+        
+        story.append(Spacer(1, 0.25*inch))
     
     # Recommendations
-    if 'Recommendations' in sections:
+    rec_sections = ['Recommendations', 'Recommendation']
+    rec_section = None
+    for section_name in rec_sections:
+        if section_name in sections:
+            rec_section = section_name
+            break
+    
+    if rec_section:
         story.append(Paragraph('Recommendations', styles['Heading2']))
-        recommendations_text = sections['Recommendations']
-        # Handle bullet points
-        for line in recommendations_text.split('\n'):
-            if line.strip().startswith('-'):
-                text = line.strip()[1:].strip()
-                story.append(Paragraph(f"• {text}", styles['Normal']))
-            else:
-                story.append(Paragraph(line, styles['Normal']))
+        story.append(Spacer(1, 0.15*inch))
+        recommendations_text = sections[rec_section]
+        
+        # Split by numbered items
+        import re
+        items = re.split(r'\n\s*\d+\.\s+', recommendations_text)
+        for i, item in enumerate(items):
+            if item.strip():
+                text = item.strip()
+                if i > 0:
+                    story.append(Paragraph(f"<b>{i}.</b> {text}", styles['Normal']))
+                    story.append(Spacer(1, 0.15*inch))
+        
         story.append(Spacer(1, 0.25*inch))
     
     # Next Investigations (if present)
@@ -252,8 +377,8 @@ def create_pdf_report(
 
 def generate_pdf_from_insights(
     insights_result: str,
-    trend_images: list[BytesIO],
-    output_dir: str | Path = None,
+    trend_images: List[BytesIO],
+    output_dir: Union[str, Path] = None,
     filename: str = None,
     title: str = "Business Performance Analysis",
     page_size=A4,

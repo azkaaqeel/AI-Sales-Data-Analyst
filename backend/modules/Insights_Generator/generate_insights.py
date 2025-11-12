@@ -9,42 +9,60 @@ from models.base import InsightLLM
 from utils.extract_kpi_summary import extract_kpi_summary
 
 PROMPT_TEMPLATE = """
-You are an experienced business analyst preparing a structured retail performance report
-based on Prophet-generated sales trends and KPI data.
+You are an experienced business analyst creating an executive-level sales performance report.
 
-**Objective:**
-Deliver a clear, data-driven analysis that leadership can use for decision-making.
-
-**Your tasks:**
-1. Interpret each image (describe overall trend, peaks, troughs, and anomalies).
-2. Connect visual patterns with the KPI table — explain *why* KPI values changed in relation to trends.
-3. Identify underlying causes and patterns (discount effects, category shifts, pricing, etc.).
-4. Provide specific, actionable recommendations tied directly to the insights.
-
-**Output Format (use Markdown headings exactly):**
-- Executive Summary
-- Table with all KPIs
-- KPI Insights
-- Recommendations
-
-**Tone & Style:**
-- Use impactful, and executive-level language.
-- Be analytical, not descriptive — explain the *why*, not just the *what*.
-- Avoid repetition, filler words, or generic advice.
-- Use short paragraphs and bullet points for readability.
-
-**Reasoning expectations:**
-- Compare KPI changes across time periods quantitatively (e.g., +20%, –35%).
-- Link insights to business levers: pricing, discounting, category performance, seasonality.
-- Highlight anomalies or sudden shifts that may indicate operational or market issues.
-
-**KPI data:**
+**DATA PROVIDED:**
 {clean_kpis}
 
-**Important:**
-Follow the section structure *exactly*.
-All numbers, categories, and insights should be grounded in the provided data.
-Never invent extra data or trends.
+**YOUR TASK:**
+Analyze the KPI data and trend charts to create a comprehensive, data-driven report with SPECIFIC NUMBERS and ACTIONABLE RECOMMENDATIONS.
+
+**OUTPUT FORMAT (use these EXACT markdown headings):**
+
+# Executive Summary
+[2-3 sentences highlighting the MOST IMPORTANT finding with specific numbers and % changes. Focus on business impact.]
+
+# KPI Analysis
+
+## Financial Performance
+[Analyze revenue, pricing, and financial metrics with specific % changes between periods]
+
+## Customer Metrics  
+[Analyze customer count, transaction volume, and purchase behavior with specific numbers]
+
+## Product Performance
+[For categorical KPIs like "Revenue by Item", identify top performers and their contribution %]
+
+## Quality & Satisfaction
+[Analyze ratings, reviews, or satisfaction metrics with trends]
+
+# Key Insights
+[3-5 bullet points, each starting with a specific finding]
+- **[Metric name] shows [specific % change]**: Explain WHY this happened and business impact
+- **[Pattern observed]**: Connect multiple KPIs to explain the root cause
+
+# Recommendations
+[3-5 specific, actionable recommendations tied to the data]
+1. **[Action verb] [specific action]**: Explain expected impact with numbers if possible
+2. **Investigate [specific issue]**: Reference the KPI that triggered this recommendation
+
+**CRITICAL RULES:**
+✅ USE ACTUAL NUMBERS from the KPI data (e.g., "$20,261" not "revenue declined")
+✅ CALCULATE % CHANGES between periods (e.g., "-11.8%" not "decreased")
+✅ REFERENCE SPECIFIC TIME PERIODS (e.g., "Dec 2023 vs Nov 2023")
+✅ TIE INSIGHTS TO BUSINESS IMPACT (revenue, profit, customer retention)
+✅ MAKE RECOMMENDATIONS MEASURABLE (e.g., "increase by 15%" not "improve")
+
+❌ DON'T invent data not in the KPI list
+❌ DON'T use vague terms like "significant" without numbers
+❌ DON'T generic advice like "monitor trends" - be specific
+❌ DON'T reference "Image 1" or charts - focus on KPI data
+
+**EXAMPLE OF GOOD INSIGHT:**
+"Total Revenue declined 11.8% from $22,961 (Nov) to $20,261 (Dec) despite a 6.3% increase in customers (111 → 118). This indicates Average Purchase Value dropped 16.7% to $104, likely due to seasonal discounting or shift to lower-priced products."
+
+**EXAMPLE OF BAD INSIGHT:**
+"Revenue showed a downward trend. Customer numbers increased. This requires monitoring."
 """.strip()
 
 

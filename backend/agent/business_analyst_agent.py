@@ -50,6 +50,8 @@ from modules.Insights_Generator.generate_insights import generate_insights
 from utils.extract_kpi_summary import extract_kpi_summary
 from models.gemini import GeminiClient
 from modules.Cleaning_Module.statistical_cleaner import clean_retail_data
+from utils.time_period_detection import determine_period_type
+from modules.custom_kpi_calculator import CustomKPICalculator
 
 
 class AnalysisState(TypedDict):
@@ -70,6 +72,7 @@ class AnalysisState(TypedDict):
     detected_kpis: Dict[str, Any]
     calculated_kpis: Dict[str, Any]
     kpi_summary: Dict[str, Any]
+    custom_kpis: Optional[List[Dict[str, str]]]  # User-defined custom KPIs
     
     # Trend phase
     trend_images: List[BytesIO]
@@ -433,6 +436,42 @@ def create_agent() -> Any:
                     state['calculated_kpis'] = calc_result
                     state['cleaning_logs'].append(f"📈 Calculated {len(selected_kpis)} KPIs")
             
+            # ========================================================================
+            # Calculate Custom KPIs
+            # ========================================================================
+            if state.get('custom_kpis'):
+                custom_kpi_list = state['custom_kpis']
+                print(f"🔧 Calculating {len(custom_kpi_list)} custom KPIs...")
+                
+                calculator = CustomKPICalculator(df)
+                custom_calc_count = 0
+                
+                for custom_kpi in custom_kpi_list:
+                    kpi_name = custom_kpi.get('name')
+                    formula = custom_kpi.get('formula')
+                    
+                    if not kpi_name or not formula:
+                        continue
+                    
+                    print(f"  - Calculating custom KPI: {kpi_name}")
+                    
+                    # Calculate the custom KPI
+                    result = calculator.calculate_kpi(formula, kpi_name)
+                    
+                    if result['success']:
+                        # Add to each period in calculated_kpis
+                        for period in state['calculated_kpis'].keys():
+                            if period != 'meta':
+                                state['calculated_kpis'][period][kpi_name] = result
+                        
+                        custom_calc_count += 1
+                        print(f"    ✅ Custom KPI '{kpi_name}' calculated successfully")
+                    else:
+                        print(f"    ❌ Custom KPI '{kpi_name}' failed: {result.get('error')}")
+                
+                if custom_calc_count > 0:
+                    state['cleaning_logs'].append(f"🧮 Calculated {custom_calc_count} custom KPIs")
+            
             state['agent_reasoning'] = f"Calculated KPIs"
             
         except Exception as e:
@@ -451,7 +490,19 @@ def create_agent() -> Any:
             
             df = state['cleaned_data'] if state['cleaned_data'] is not None else state['csv_data']
             
-            trend_images = detect_trends(df, period_type='Monthly')
+            # Auto-detect period type based on date range
+            period_type = 'Monthly'  # Default
+            date_columns = df.select_dtypes(include=['datetime64']).columns
+            if len(date_columns) > 0:
+                date_col = date_columns[0]
+                try:
+                    auto_period = determine_period_type(df, date_col)
+                    period_type = 'Weekly' if auto_period == 'WoW' else 'Monthly'
+                    state['cleaning_logs'].append(f"🔍 Auto-detected {period_type} period (span: {(df[date_col].max() - df[date_col].min()).days} days)")
+                except:
+                    pass
+            
+            trend_images = detect_trends(df, period_type=period_type)
             state['trend_images'] = trend_images
             state['cleaning_logs'].append(f"📉 Generated {len(trend_images)} trend charts")
             state['agent_reasoning'] = f"Extracted {len(trend_images)} visualizations"
@@ -726,16 +777,13 @@ def run_full_pipeline(
         detected_kpis={},
         calculated_kpis={},
         kpi_summary={},
+        custom_kpis=custom_kpis,  # Include custom KPIs in initial state
         trend_images=[],
         insights="",
         agent_reasoning="",
         error=None,
         current_step="start"
     )
-    
-    # Store custom KPIs in state (we'll use them in KPI detection)
-    if custom_kpis:
-        initial_state['custom_kpis'] = custom_kpis
     
     result = agent.invoke(initial_state)
     return result

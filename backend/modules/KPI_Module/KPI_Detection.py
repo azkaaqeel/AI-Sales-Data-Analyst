@@ -35,7 +35,8 @@ def KPI_Detection(df, combined_kpis, use_llm_generation=True):
     if use_llm_generation:
         match_rate = yaml_matched_count / len(combined_kpis) if combined_kpis else 0
         
-        if match_rate < 0.5:  # If less than 50% matched, use LLM
+        # Only use LLM generation for very low match rates (< 30%) to improve latency
+        if match_rate < 0.3:  # If less than 30% matched, use LLM
             print(f"\n🤖 Phase 2: LLM KPI Generation (match rate: {match_rate:.1%})...")
             
             # Prepare sample data for LLM

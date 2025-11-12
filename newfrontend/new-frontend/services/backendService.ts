@@ -137,6 +137,88 @@ export const generateReport = async (
 };
 
 /**
+ * Export PDF using backend ReportLab generator
+ */
+export const exportPDF = async (
+    fileId: string,
+    reportData: {
+        insights: string;
+        trend_images: string[];  // base64 encoded images
+    }
+): Promise<{ pdf_base64: string; filename: string }> => {
+    const formData = new FormData();
+    formData.append('file_id', fileId);
+    formData.append('report_data', JSON.stringify(reportData));
+    
+    const response = await fetch(`${API_BASE_URL}/api/generate_pdf`, {
+        method: 'POST',
+        body: formData,
+    });
+    
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: 'PDF generation failed' }));
+        throw new Error(error.detail || 'Failed to generate PDF');
+    }
+    
+    return response.json();
+};
+
+/**
+ * Get available columns and templates for custom KPI creation
+ */
+export const getCustomKPIColumns = async (fileId: string): Promise<{
+    columns: { numeric: string[], countable: string[], all: string[] };
+    templates: Array<{
+        name: string;
+        formula: string;
+        description: string;
+        requires: string[];
+    }>;
+}> => {
+    const response = await fetch(`${API_BASE_URL}/api/custom_kpi/columns/${fileId}`);
+    
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: 'Failed to load columns' }));
+        throw new Error(error.detail || 'Failed to load columns');
+    }
+    
+    return response.json();
+};
+
+/**
+ * Calculate a custom KPI
+ */
+export const calculateCustomKPI = async (
+    fileId: string,
+    kpiName: string,
+    formula: string
+): Promise<{
+    success: boolean;
+    kpi: {
+        name: string;
+        value: any;
+        formula: string;
+        description: string;
+    };
+}> => {
+    const formData = new FormData();
+    formData.append('kpi_name', kpiName);
+    formData.append('formula', formula);
+    
+    const response = await fetch(`${API_BASE_URL}/api/custom_kpi/calculate/${fileId}`, {
+        method: 'POST',
+        body: formData,
+    });
+    
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: 'Calculation failed' }));
+        throw new Error(error.detail || 'Failed to calculate KPI');
+    }
+    
+    return response.json();
+};
+
+/**
  * Health check
  */
 export const checkHealth = async (): Promise<boolean> => {

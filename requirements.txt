@@ -30,3 +30,7 @@ tabulate>=0.9.0
 # Additional Dependencies
 Pillow>=10.0.0
 matplotlib>=3.7.0
+
+# PDF Generation
+markdown>=3.9
+reportlab>=4.4.0

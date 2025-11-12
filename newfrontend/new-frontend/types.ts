@@ -52,6 +52,14 @@ export interface DetectedKPI {
     matched_columns?: Record<string, string>;
     formula?: string;
     value?: string;  // For display in cards
+    sparkline?: number[];  // Historical values for sparkline
+    formula_description?: string;  // Custom KPI formula explanation
+    seasonal?: {
+        actual_change: number;
+        expected_change: number;
+        variance: number;
+        assessment: string;
+    };
 }
 
 export interface CustomKPI {
@@ -67,12 +75,45 @@ export interface Trend {
         x_axis: string;
         y_axis: number;
     }[];
+    holidays?: {
+        date: string;
+        name: string;
+        icon: string;
+        impact: string;
+    }[];
+    anomalies?: number[];  // Indices of anomalous points
+    insights?: {
+        trend: string;
+        change: string;
+        peak: string;
+        low: string;
+        average: string;
+        volatility: string;
+        anomalies_count: number;
+    };
+}
+
+export interface CategoricalBreakdown {
+    title: string;
+    items: {
+        name: string;
+        value: string;
+        raw_value: number;
+    }[];
+    total_categories: number;
+    is_currency: boolean;
 }
 
 export interface Report {
     reportTitle: string;
     summary: string;
     kpis: DetectedKPI[];
+    kpiExplanations?: {
+        icon: string;
+        title: string;
+        description: string;
+    }[];
+    categoricalBreakdowns?: CategoricalBreakdown[];  // NEW: Safe categorical data
     trends: Trend[];
     insights: string[];
     recommendations: string[];

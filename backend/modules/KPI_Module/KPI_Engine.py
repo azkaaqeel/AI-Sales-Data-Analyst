@@ -268,14 +268,14 @@ Return ONLY a valid JSON object with the mapping (no markdown, no explanation):
         
     except Exception as e:
         print(f"⚠️  LLM mapping failed: {e}")
-        print("   Falling back to fuzzy matching...")
+        print("   Continuing without LLM mapping (manual match only)...")
         return {}
 
 
 def match_base_kpis(column_names: list, base_kpis: dict, threshold: float, semantic_match_fn, llm_mapping: dict = None):
     normalized_columns = normalize_columns(column_names)
     print(f"\n📋 Available normalized columns: {normalized_columns}")
-    print(f"🎯 Matching threshold: {threshold}\n")
+    print(f"🎯 FUZZY MATCHING DISABLED - Using LLM mapping only\n")
     kpi_status = {}
 
     for kpi_name, kpi_info in base_kpis.items():
@@ -288,17 +288,16 @@ def match_base_kpis(column_names: list, base_kpis: dict, threshold: float, seman
         for placeholder in kpi_placeholders:
             match = None
             
-            # Try LLM mapping first
+            # Use LLM mapping only (faster, more intelligent than fuzzy matching)
             if llm_mapping and placeholder in llm_mapping:
                 llm_match = llm_mapping[placeholder]
                 if llm_match and llm_match in column_names:
                     match = normalize_column_name(llm_match)
                     print(f"      ✅ LLM matched '{placeholder}' → '{match}'")
-            
-            # Fallback to fuzzy/semantic matching
-            if match is None:
-                normalized_placeholder = normalize_column_name(placeholder)
-                match = match_column(normalized_placeholder, normalized_columns, threshold, semantic_match_fn=semantic_match_fn)
+                else:
+                    print(f"      ❌ No match for '{placeholder}'")
+            else:
+                print(f"      ⚠️  '{placeholder}' not in LLM mapping")
             
             if match is None:
                 all_found = False
@@ -336,10 +335,21 @@ def match_derived_kpis(column_names: list, derived_kpis: dict, base_status: dict
             matched_columns = {}
             all_found = True
 
-        
+            # Derived KPIs use base KPI results, no need for fuzzy matching
             for placeholder in kpi_info.get("columns", []):
-                normalized_placeholder = normalize_column_name(placeholder)
-                match = match_column(normalized_placeholder, available_columns, threshold, semantic_match_fn=semantic_match_fn)
+                # Check if this placeholder is already matched in base KPIs
+                match = None
+                for base_kpi_name, base_data in base_status.items():
+                    if base_data.get("calculable") and placeholder in base_data.get("matched_columns", {}):
+                        match = base_data["matched_columns"][placeholder]
+                        break
+                
+                # If not found in base KPIs, check if it's directly in columns
+                if match is None:
+                    normalized_placeholder = normalize_column_name(placeholder)
+                    if normalized_placeholder in available_columns:
+                        match = normalized_placeholder
+                
                 if match is None:
                     all_found = False
                 matched_columns[placeholder] = match

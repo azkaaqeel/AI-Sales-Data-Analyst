@@ -2,14 +2,17 @@
 import React, { useState } from 'react';
 import { DetectedKPI, CustomKPI } from '../types';
 import { AnalyzeIcon } from './icons';
+import CustomKPIModal from './CustomKPIModal';
 
 interface KPISelectionWithCustomProps {
   detectedKpis: DetectedKPI[];
+  fileId: string;
   onGenerateReport: (selectedKpis: string[], customKpis: CustomKPI[]) => void;
 }
 
 const KPISelectionWithCustom: React.FC<KPISelectionWithCustomProps> = ({ 
-  detectedKpis, 
+  detectedKpis,
+  fileId,
   onGenerateReport 
 }) => {
   const [selectedKpis, setSelectedKpis] = useState<Set<string>>(
@@ -17,10 +20,7 @@ const KPISelectionWithCustom: React.FC<KPISelectionWithCustomProps> = ({
   );
   
   const [customKpis, setCustomKpis] = useState<CustomKPI[]>([]);
-  const [newKpiName, setNewKpiName] = useState('');
-  const [newKpiFormula, setNewKpiFormula] = useState('');
-  const [newKpiDescription, setNewKpiDescription] = useState('');
-  const [showCustomForm, setShowCustomForm] = useState(false);
+  const [showCustomModal, setShowCustomModal] = useState(false);
 
   const handleToggleKpi = (kpiName: string) => {
     const newSelection = new Set(selectedKpis);
@@ -32,23 +32,15 @@ const KPISelectionWithCustom: React.FC<KPISelectionWithCustomProps> = ({
     setSelectedKpis(newSelection);
   };
 
-  const handleAddCustomKpi = () => {
-    if (newKpiName.trim() && newKpiFormula.trim()) {
-      const customKpi: CustomKPI = {
-        name: newKpiName.trim(),
-        formula: newKpiFormula.trim(),
-        description: newKpiDescription.trim() || `Custom KPI: ${newKpiName}`
-      };
-      
-      setCustomKpis([...customKpis, customKpi]);
-      setSelectedKpis(new Set([...selectedKpis, newKpiName.trim()]));
-      
-      // Reset form
-      setNewKpiName('');
-      setNewKpiFormula('');
-      setNewKpiDescription('');
-      setShowCustomForm(false);
-    }
+  const handleAddCustomKpi = (kpi: any) => {
+    const customKpi: CustomKPI = {
+      name: kpi.name,
+      formula: kpi.formula,
+      description: kpi.description
+    };
+    
+    setCustomKpis([...customKpis, customKpi]);
+    setSelectedKpis(new Set([...selectedKpis, kpi.name]));
   };
 
   const handleRemoveCustomKpi = (kpiName: string) => {
@@ -110,76 +102,22 @@ const KPISelectionWithCustom: React.FC<KPISelectionWithCustomProps> = ({
           <h3 className="text-xl font-semibold text-white text-left">
             ✨ Custom KPIs ({customKpis.length})
           </h3>
-          {!showCustomForm && (
-            <button
-              onClick={() => setShowCustomForm(true)}
-              className="text-sm bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              + Add Custom KPI
-            </button>
-          )}
+          <button
+            onClick={() => setShowCustomModal(true)}
+            className="text-sm bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+          >
+            <span className="text-lg">🧮</span>
+            + Create Custom KPI
+          </button>
         </div>
 
-        {/* Custom KPI Form */}
-        {showCustomForm && (
-          <div className="mb-4 p-4 bg-gray-900/50 rounded-lg border border-indigo-700">
-            <div className="space-y-3">
-              <div className="text-left">
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  KPI Name *
-                </label>
-                <input
-                  type="text"
-                  value={newKpiName}
-                  onChange={(e) => setNewKpiName(e.target.value)}
-                  placeholder="e.g., Profit Margin"
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div className="text-left">
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Formula * <span className="text-gray-500 text-xs">(use column names)</span>
-                </label>
-                <input
-                  type="text"
-                  value={newKpiFormula}
-                  onChange={(e) => setNewKpiFormula(e.target.value)}
-                  placeholder="e.g., (Revenue - Cost) / Revenue * 100"
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div className="text-left">
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Description
-                </label>
-                <input
-                  type="text"
-                  value={newKpiDescription}
-                  onChange={(e) => setNewKpiDescription(e.target.value)}
-                  placeholder="Brief explanation of this KPI"
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div className="flex gap-2 justify-end">
-                <button
-                  onClick={() => setShowCustomForm(false)}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddCustomKpi}
-                  disabled={!newKpiName.trim() || !newKpiFormula.trim()}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
-                >
-                  Add KPI
-                </button>
-              </div>
-            </div>
-          </div>
+        {/* Custom KPI Modal */}
+        {showCustomModal && (
+          <CustomKPIModal
+            fileId={fileId}
+            onAdd={handleAddCustomKpi}
+            onClose={() => setShowCustomModal(false)}
+          />
         )}
 
         {/* Custom KPI List */}

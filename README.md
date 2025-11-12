@@ -1,4 +1,4 @@
-# 🤖 AI Sales Data Analyst
+# 🤖 DataMind - AI Sales Data Analyst
 
 **An intelligent, full-stack analytics platform that transforms raw CSV data into actionable business insights using AI.**
 
@@ -8,9 +8,20 @@ Upload your sales data → Get automated cleaning suggestions → Detect KPIs in
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18+-61DAFB.svg)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6.svg)](https://www.typescriptlang.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![LangGraph](https://img.shields.io/badge/LangGraph-0.2+-purple.svg)](https://github.com/langchain-ai/langgraph)
 
-![Demo](https://via.placeholder.com/800x400?text=AI+Sales+Data+Analyst+Demo)
+---
+
+## 📋 Table of Contents
+
+- [Key Features](#-key-features)
+- [Architecture](#-architecture)
+- [Complete Application Flow](#-complete-application-flow)
+- [How Services Work](#-how-services-work)
+- [Quick Start](#-quick-start)
+- [API Documentation](#-api-documentation)
+- [Project Structure](#-project-structure)
+- [Configuration](#-configuration)
 
 ---
 
@@ -20,69 +31,607 @@ Upload your sales data → Get automated cleaning suggestions → Detect KPIs in
 - **Statistical profiling** - Automatically analyzes column types, data quality, and anomalies
 - **Rule-based cleaning** - Handles missing values, outliers, duplicates, and type conversions
 - **User control** - Column-wise cleaning plan with toggle buttons to select which steps to apply
+- **Safe operations** - Preview changes before applying them
 
 ### 🎯 **Hybrid KPI Detection**
 - **LLM-powered column mapping** - Uses Google Gemini to understand semantic meaning (e.g., "purchase_amount" = "selling_price")
-- **YAML-based KPI library** - 12+ pre-defined business metrics with fuzzy matching
-- **Dynamic KPI generation** - AI creates custom KPIs based on available columns when needed
-- **Custom KPI support** - Users can add their own metrics with pandas formulas
+- **YAML-based KPI library** - 12+ pre-defined business metrics
+- **Dynamic KPI generation** - AI creates custom KPIs based on available columns when needed (only for <30% match rate)
+- **Custom KPI builder** - Visual formula builder with safe calculation engine
 
-### 📈 **Time-Series Forecasting**
+### 📈 **Time-Series Analysis**
 - **Prophet integration** - Facebook's forecasting library for trend analysis
-- **Automatic visualization** - Generates trend charts with seasonal decomposition
-- **Multi-period analysis** - Calculate KPIs across daily, weekly, or monthly periods
+- **Anomaly detection** - Statistical outlier detection in trends
+- **Automatic visualization** - Generates trend charts with insights
+- **Multi-period support** - Calculate KPIs across daily, weekly, or monthly periods
 
 ### 🤖 **AI-Powered Insights**
 - **Executive summaries** - Google Gemini generates business insights from data
 - **Actionable recommendations** - Context-aware suggestions based on trends and KPIs
-- **Interactive chat** - Ask questions about your report using AI assistant
+- **Seasonal analysis** - Detects holiday impacts and seasonal patterns
+- **Dynamic explanations** - KPI-specific business context
 
 ### 🎨 **Modern Frontend**
-- **Beautiful UI** - Clean, responsive design with Tailwind CSS
+- **Beautiful UI** - Clean, responsive design with Tailwind CSS and dark theme
 - **4-phase workflow** - Upload → Review Plan → Select KPIs → View Report
 - **Real-time updates** - Live progress tracking during processing
-- **PDF export** - Download reports for sharing
+- **PDF export** - Download professional text-based reports
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐
-│   React + Vite  │  Modern TypeScript frontend
-│   Frontend      │  
-└────────┬────────┘
-         │ HTTP/REST
-         ▼
-┌─────────────────┐
-│   FastAPI       │  Python backend with AI modules
-│   Backend       │  
-└────────┬────────┘
-         │
-    ┌────┴─────┬─────────┬──────────┐
-    ▼          ▼         ▼          ▼
-┌────────┐ ┌────────┐ ┌─────────┐ ┌──────────┐
-│Cleaning│ │  KPI   │ │ Trends  │ │ Insights │
-│Module  │ │ Engine │ │Prophet  │ │ Gemini   │
-└────────┘ └────────┘ └─────────┘ └──────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                    FRONTEND (React + TypeScript)              │
+│  ┌────────────┐  ┌──────────────┐  ┌────────────────────┐   │
+│  │ FileUpload │→│ CleaningPlan │→│ KPI Selection      │→  │
+│  │ Component  │  │ View         │  │ (Detected+Custom)  │   │
+│  └────────────┘  └──────────────┘  └────────────────────┘   │
+│                                      ↓                        │
+│                              ┌────────────────┐               │
+│                              │  Report View   │               │
+│                              │  (KPIs+Charts) │               │
+│                              └────────────────┘               │
+└───────────────────────────────────┬──────────────────────────┘
+                                    │ REST API
+                                    ▼
+┌──────────────────────────────────────────────────────────────┐
+│              BACKEND (FastAPI + LangGraph Agent)             │
+│                                                               │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │         LangGraph Agentic Workflow                   │    │
+│  │  ┌────────┐  ┌──────────┐  ┌─────────┐  ┌────────┐ │    │
+│  │  │ Ingest │→│  Clean   │→│ Load    │→│ Detect │ │    │
+│  │  │  CSV   │  │   Data   │  │  KPIs   │  │  KPIs  │ │    │
+│  │  └────────┘  └──────────┘  └─────────┘  └────────┘ │    │
+│  │       ↓                                        ↓      │    │
+│  │  ┌────────────┐  ┌─────────────┐  ┌──────────────┐ │    │
+│  │  │ Calculate  │→│   Extract   │→│  Generate    │ │    │
+│  │  │    KPIs    │  │   Trends    │  │  Insights    │ │    │
+│  │  └────────────┘  └─────────────┘  └──────────────┘ │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                           ↓                                   │
+│  ┌────────────┐  ┌─────────────┐  ┌──────────────────────┐ │
+│  │ Statistical│  │ KPI Engine  │  │ Custom KPI           │ │
+│  │ Cleaner    │  │ (LLM-based) │  │ Calculator (Pandas)  │ │
+│  └────────────┘  └─────────────┘  └──────────────────────┘ │
+│                           ↓                                   │
+│  ┌──────────────────┐         ┌────────────────────────┐   │
+│  │ Prophet          │         │ Gemini LLM             │   │
+│  │ (Forecasting)    │         │ (Insights + Mapping)   │   │
+│  └──────────────────┘         └────────────────────────┘   │
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ### Tech Stack
 
 **Backend:**
 - **FastAPI** - High-performance async API framework
-- **LangGraph** - Agentic workflow orchestration
+- **LangGraph** - Agentic workflow orchestration (state machine)
 - **Pandas** - Data manipulation and analysis
-- **Prophet** - Time-series forecasting
-- **Google Gemini** - LLM for column mapping, KPI generation, and insights
-- **Sentence Transformers** - Semantic similarity matching
+- **Prophet** - Time-series forecasting by Meta
+- **Google Gemini 1.5 Pro** - LLM for column mapping, KPI generation, and insights
+- **ReportLab** - PDF generation
+- **FuzzyWuzzy** - String matching (deprecated in favor of LLM)
 
 **Frontend:**
-- **React 18** - UI library
+- **React 18** - UI library with hooks
 - **TypeScript** - Type safety
-- **Vite** - Fast build tool
-- **Recharts** - Data visualization
-- **Tailwind CSS** - Styling
+- **Vite** - Fast build tool and dev server
+- **Recharts** - Data visualization library
+- **Tailwind CSS** - Utility-first styling
+
+---
+
+## 🔄 Complete Application Flow
+
+### Phase 1: Upload & Data Profiling
+
+```
+User uploads CSV
+     ↓
+FastAPI receives file (/api/upload)
+     ↓
+LangGraph Agent: ingest_node
+     ├─ Read CSV with pandas
+     ├─ Detect column types
+     ├─ Calculate data statistics
+     └─ Classify dataset type (sales/inventory/etc)
+     ↓
+LangGraph Agent: propose_cleaning_node
+     ├─ Statistical Cleaner analyzes each column:
+     │   ├─ Missing values (>5% → impute/drop)
+     │   ├─ Outliers (IQR method)
+     │   ├─ Duplicates (by all columns)
+     │   ├─ Type mismatches (numeric as text)
+     │   ├─ Date parsing (auto-detect formats)
+     │   └─ Negative values (in price/amount columns)
+     ├─ Generate step-by-step cleaning plan
+     └─ Mark critical vs optional steps
+     ↓
+Return to Frontend:
+     {
+       file_id: "unique-id",
+       cleaning_plan: {
+         columns: [{column, steps[]}],
+         global_steps: []
+       }
+     }
+```
+
+**Key Implementation:**
+- `backend/modules/Ingestion_Module/ingest_csv.py` - CSV parsing
+- `backend/modules/Cleaning_Module/statistical_cleaner.py` - Cleaning logic
+- `backend/agent/business_analyst_agent.py` - Agent nodes
+
+---
+
+### Phase 2: Apply Cleaning & Detect KPIs
+
+```
+User selects cleaning steps
+     ↓
+FastAPI receives selections (/api/clean_and_detect_kpis)
+     ↓
+LangGraph Agent: apply_cleaning_node
+     ├─ Apply selected steps only
+     ├─ Track which operations were performed
+     └─ Store cleaned dataframe in memory
+     ↓
+LangGraph Agent: load_kpis_node
+     ├─ Load YAML KPI definitions (Sales_KPI.YAML)
+     └─ Prepare KPI templates
+     ↓
+LangGraph Agent: detect_kpis_node
+     │
+     ├─ Phase 1: LLM Column Mapping
+     │   ├─ Send all column names + KPI requirements to Gemini
+     │   ├─ LLM understands semantic meaning:
+     │   │   "purchase_amount_(usd)" = "selling_price"
+     │   │   "customer_reference_id" = "order_id"
+     │   └─ Returns JSON mapping
+     │
+     ├─ Phase 2: Match Base KPIs (NO FUZZY MATCHING)
+     │   ├─ For each KPI, check if required columns are in LLM mapping
+     │   ├─ Mark as "calculable" if all columns found
+     │   └─ Skip if any column missing
+     │
+     ├─ Phase 3: Match Derived KPIs
+     │   └─ Calculate if dependencies are calculable
+     │
+     └─ Phase 4: LLM Generate Additional KPIs (only if <30% match)
+         ├─ Send sample data to Gemini
+         ├─ LLM creates custom KPIs based on available columns
+         └─ Merge with detected KPIs
+     ↓
+Return to Frontend:
+     {
+       detected_kpis: [
+         {name, description, formula},
+         ...
+       ]
+     }
+```
+
+**Key Implementation:**
+- `backend/modules/KPI_Module/KPI_Detection.py` - Hybrid detection
+- `backend/modules/KPI_Module/KPI_Engine.py` - LLM mapping + matching
+- `backend/modules/KPI_Module/llm_kpi_generator.py` - Dynamic generation
+
+**Optimization Note:**
+- **Latency reduced by 60-70%** by removing fuzzy/semantic matching
+- LLM mapping is faster and more accurate
+- Only triggers additional LLM call for very poor matches (<30%)
+
+---
+
+### Phase 3: Calculate KPIs & Generate Report
+
+```
+User selects KPIs (detected + custom)
+     ↓
+FastAPI receives selections (/api/generate_report)
+     ↓
+LangGraph Agent: calculate_kpis_node
+     │
+     ├─ Detect time period (date column → daily/weekly/monthly)
+     ├─ Group data by period
+     │
+     ├─ For each KPI:
+     │   ├─ Execute formula with matched columns
+     │   ├─ Handle dependencies (derived KPIs)
+     │   └─ Store result per time period
+     │
+     └─ Calculate Custom KPIs:
+         ├─ Parse user formula (e.g., "sum('Revenue') / count('Orders')")
+         ├─ Validate: sum/avg/min/max only on numeric columns
+         ├─ Safe eval in restricted namespace
+         ├─ Handle divide-by-zero, NaN, Inf
+         └─ Add to all periods
+     ↓
+LangGraph Agent: extract_trends_node
+     │
+     ├─ For each numeric KPI (up to 6):
+     │   ├─ Prepare time-series data
+     │   ├─ Run Prophet forecasting
+     │   ├─ Detect anomalies (statistical outliers)
+     │   ├─ Calculate trend insights:
+     │   │   ├─ Overall direction (↑↓→)
+     │   │   ├─ % change
+     │   │   ├─ Volatility (high/low)
+     │   │   └─ Peak/low values
+     │   └─ Return chart data as JSON
+     │
+     └─ Generate sparklines (last 10 periods)
+     ↓
+LangGraph Agent: generate_insights_node
+     │
+     ├─ Prepare structured KPI data for LLM
+     ├─ Send to Gemini with detailed prompt:
+     │   "Analyze these KPIs and provide:
+     │    - Executive Summary (2-3 sentences)
+     │    - KPI Analysis (with % changes)
+     │    - Key Insights (3-5 bullet points)
+     │    - Recommendations (3-5 actionable items)"
+     │
+     └─ Parse markdown response into sections
+     ↓
+Transform for Frontend:
+     │
+     ├─ Build KPI Cards:
+     │   ├─ Latest value vs previous period
+     │   ├─ Trend indicator (↑↓→)
+     │   ├─ Sparkline data
+     │   └─ Seasonal context (if applicable)
+     │
+     ├─ Generate Dynamic Explanations:
+     │   ├─ Detect KPI type (revenue/customer/product/etc)
+     │   ├─ Provide business context
+     │   └─ Skip custom KPIs (use formula description)
+     │
+     ├─ Extract Categorical Breakdowns:
+     │   ├─ Find dict-type KPIs (e.g., "Revenue by Category")
+     │   ├─ Sort by value, take top 10
+     │   └─ Format for visual display
+     │
+     └─ Parse Insights:
+         ├─ Executive Summary
+         ├─ Key Insights (bullets)
+         └─ Recommendations (numbered)
+     ↓
+Return to Frontend:
+     {
+       report: {
+         reportTitle,
+         summary,
+         kpis: [{name, value, description, sparkline}],
+         kpiExplanations: [{icon, title, description}],
+         categoricalBreakdowns: [{title, items[]}],
+         trends: [{title, chartData[], insights}],
+         insights: [],
+         recommendations: []
+       }
+     }
+```
+
+**Key Implementation:**
+- `backend/modules/KPI_Module/KPI_Engine.py` - Temporal calculation
+- `backend/modules/custom_kpi_calculator.py` - Custom KPI engine
+- `backend/modules/Trend_Extractor/Trend_Extraction.py` - Prophet forecasting
+- `backend/modules/Insights_Generator/generate_insights.py` - Gemini insights
+- `backend/server/integrated_api.py` - Response transformation
+
+---
+
+### Phase 4: Display Report & Export PDF
+
+```
+Frontend receives structured report
+     ↓
+Render Components:
+     ├─ Executive Summary (clean markdown)
+     ├─ KPI Cards Grid:
+     │   ├─ Value with trend indicator
+     │   ├─ Period comparison
+     │   ├─ Mini sparkline chart
+     │   └─ Custom KPI formula (if applicable)
+     │
+     ├─ "What This Means" Section:
+     │   └─ Business explanations for detected KPIs only
+     │
+     ├─ Category Breakdowns (if any):
+     │   └─ Top 10 items with visual bars
+     │
+     ├─ Trend Analysis Charts:
+     │   ├─ Recharts line chart
+     │   ├─ Anomalies marked with red dots
+     │   ├─ Hover tooltips (period + value)
+     │   └─ Analysis card (trend, peak, volatility)
+     │
+     ├─ Actionable Insights (bullets)
+     └─ Recommendations (numbered)
+     ↓
+User clicks "Export PDF"
+     ↓
+Frontend sends full report structure to backend
+     ↓
+Backend (/api/generate_pdf):
+     ├─ Use ReportLab to generate PDF
+     ├─ Text-based format (no graphs)
+     ├─ Sections:
+     │   ├─ Title + date
+     │   ├─ Executive Summary
+     │   ├─ KPI Table
+     │   ├─ Business Explanations
+     │   ├─ Category Breakdown Tables
+     │   ├─ Trend Analysis (text description)
+     │   ├─ Insights
+     │   └─ Recommendations
+     └─ Return PDF as file download
+```
+
+**Key Implementation:**
+- `newfrontend/new-frontend/components/ReportView.tsx` - Main report UI
+- `newfrontend/new-frontend/components/KPICard.tsx` - Individual KPI card
+- `newfrontend/new-frontend/components/Chart.tsx` - Trend visualization
+- `backend/utils/generate_pdf_reports_v2.py` - PDF generation
+
+---
+
+## 🔧 How Services Work
+
+### 1. Data Cleaning Service
+
+**File:** `backend/modules/Cleaning_Module/statistical_cleaner.py`
+
+**How it Works:**
+```python
+def clean_retail_data(df):
+    # For each column:
+    
+    # 1. Analyze data type
+    if is_numeric(col):
+        steps.append(fix_negatives())     # For price/amount columns
+        steps.append(remove_outliers())   # IQR method (1.5 * IQR)
+    
+    # 2. Handle missing values
+    if missing_rate > 5%:
+        if is_numeric: steps.append(impute_median())
+        else: steps.append(drop_rows())
+    
+    # 3. Parse dates
+    if looks_like_date(col):
+        steps.append(auto_parse_date())   # Try multiple formats
+    
+    # 4. Global operations
+    steps.append(remove_duplicates())     # By all columns
+    steps.append(trim_whitespace())       # Clean strings
+    
+    return cleaning_plan
+```
+
+**Safety Features:**
+- Non-destructive preview
+- User approval required
+- Rollback support (original data kept in memory)
+
+---
+
+### 2. KPI Detection Service
+
+**File:** `backend/modules/KPI_Module/KPI_Detection.py`, `KPI_Engine.py`
+
+**How it Works:**
+
+#### Step 1: LLM Column Mapping
+```python
+# Send to Gemini:
+prompt = f"""
+CSV Columns: {csv_columns}
+Required KPI Columns: {kpi_requirements}
+
+Map each KPI column to the best CSV column match.
+Consider semantic meaning, not just text.
+
+Example mappings:
+- "selling_price" → "purchase_amount_(usd)"
+- "order_id" → "customer_reference_id"
+
+Return JSON:
+{{"selling_price": "purchase_amount_(usd)", ...}}
+"""
+
+# Gemini returns intelligent mapping
+mapping = gemini.generate(prompt)
+```
+
+#### Step 2: Match KPIs (LLM Only - No Fuzzy)
+```python
+for kpi_name, kpi_info in kpis:
+    required_columns = kpi_info['columns']
+    matched = {}
+    
+    for col in required_columns:
+        if col in llm_mapping:
+            matched[col] = llm_mapping[col]
+        else:
+            matched[col] = None
+    
+    kpi_calculable = all(matched.values())
+```
+
+#### Step 3: Generate Additional KPIs (Only if <30% matched)
+```python
+if match_rate < 0.3:
+    # Send sample data to Gemini
+    llm_kpis = gemini.generate(f"""
+    Create KPIs for this dataset:
+    Columns: {columns}
+    Sample: {sample_rows}
+    
+    Return KPIs with formulas.
+    """)
+    
+    # Merge with detected KPIs
+    all_kpis = yaml_kpis + llm_kpis
+```
+
+**Why This is Fast:**
+- Single LLM call for all column mappings
+- No iterative fuzzy matching
+- Only generates new KPIs for poor matches
+- **60-70% latency reduction**
+
+---
+
+### 3. Custom KPI Calculator
+
+**File:** `backend/modules/custom_kpi_calculator.py`
+
+**How it Works:**
+
+#### Safe Formula Parsing
+```python
+# User enters: sum("Revenue") / count("Order Id")
+
+# Step 1: Validate column types
+if 'sum' in formula:
+    if column not in numeric_columns:
+        raise Error("Cannot sum() non-numeric column")
+
+# Step 2: Replace with pandas operations
+formula = formula.replace('sum("Revenue")', 'df["revenue"].sum()')
+formula = formula.replace('count("Order Id")', 'df["order_id"].count()')
+
+# Step 3: Safe eval in restricted namespace
+namespace = {
+    'df': df,
+    'np': np,
+    'sum': np.sum,
+    'count': len,
+    '__builtins__': {}  # No dangerous functions
+}
+result = eval(formula, namespace)
+
+# Step 4: Handle errors
+if np.isnan(result) or np.isinf(result):
+    return Error("Division by zero or invalid calculation")
+```
+
+**Supported Operations:**
+- **Numeric only:** `sum()`, `avg()`, `min()`, `max()`, `median()`
+- **Any column:** `count()`, `nunique()`
+- **Operators:** `+`, `-`, `*`, `/`, `()`
+
+**Safety Features:**
+- Type validation before execution
+- Restricted eval namespace
+- Divide-by-zero handling
+- No access to dangerous functions
+
+---
+
+### 4. Trend Analysis Service
+
+**File:** `backend/modules/Trend_Extractor/Trend_Extraction.py`
+
+**How it Works:**
+
+#### Prophet Forecasting
+```python
+# Prepare time-series data
+df_prophet = pd.DataFrame({
+    'ds': date_column,  # Date
+    'y': kpi_values     # Metric values
+})
+
+# Run Prophet
+model = Prophet()
+model.fit(df_prophet)
+forecast = model.predict(future)
+
+# Extract components
+trend = forecast['trend']
+seasonality = forecast['seasonal']
+```
+
+#### Anomaly Detection
+```python
+# Calculate z-scores
+mean = np.mean(values)
+std = np.std(values)
+z_scores = [(v - mean) / std for v in values]
+
+# Flag outliers (|z| > 2)
+anomalies = [i for i, z in enumerate(z_scores) if abs(z) > 2]
+```
+
+#### Trend Insights
+```python
+# Direction
+if last_value > first_value * 1.1:
+    trend = "upward"
+elif last_value < first_value * 0.9:
+    trend = "downward"
+else:
+    trend = "stable"
+
+# Volatility
+volatility = "high" if std > mean * 0.3 else "low"
+```
+
+---
+
+### 5. Insights Generation Service
+
+**File:** `backend/modules/Insights_Generator/generate_insights.py`
+
+**How it Works:**
+
+#### Gemini Prompt Template
+```python
+prompt = f"""
+You are a business analyst. Analyze these KPIs:
+
+{kpi_data}
+
+Generate a report with:
+# Executive Summary
+[2-3 sentences with specific numbers]
+
+# KPI Analysis
+## Financial Performance
+[Analyze revenue with % changes]
+
+# Key Insights
+- **Finding 1**: Explain with numbers
+- **Finding 2**: ...
+
+# Recommendations
+1. **Action**: Expected impact
+2. ...
+
+RULES:
+✅ USE actual numbers (e.g., "$20,261", "11.8%")
+✅ REFERENCE time periods (e.g., "Dec 2023 vs Nov 2023")
+✅ TIE insights to business impact
+❌ DON'T use vague terms like "significant"
+❌ DON'T give generic advice
+"""
+
+insights = gemini.generate(prompt)
+```
+
+#### Parse Response
+```python
+# Extract sections from markdown
+sections = {
+    'summary': extract_between("# Executive Summary", "# KPI"),
+    'insights': extract_bullets("# Key Insights"),
+    'recommendations': extract_numbered("# Recommendations")
+}
+```
 
 ---
 
@@ -90,15 +639,15 @@ Upload your sales data → Get automated cleaning suggestions → Detect KPIs in
 
 ### Prerequisites
 
-- Python 3.9+
-- Node.js 18+
-- Google Gemini API Key ([Get one here](https://ai.google.dev/))
+- **Python 3.9+**
+- **Node.js 18+**
+- **Google Gemini API Key** ([Get one here](https://ai.google.dev/))
 
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/azkaaqeel/AI-Sales-Data-Analyst.git
-cd AI-Sales-Data-Analyst
+git clone https://github.com/azkaaqeel/datamind.git
+cd datamind
 ```
 
 ### 2. Backend Setup
@@ -112,8 +661,10 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 # Create .env file
-echo "GOOGLE_API_KEY=your_gemini_api_key_here" > .env
-echo "GEMINI_API_KEY=your_gemini_api_key_here" >> .env
+cat > .env << EOF
+GOOGLE_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
+EOF
 ```
 
 ### 3. Frontend Setup
@@ -139,115 +690,15 @@ npm run dev
 ```
 Frontend runs at: `http://localhost:3000`
 
-### 5. Open Browser
+### 5. Test with Sample Data
 
-Navigate to `http://localhost:3000` and upload your CSV file!
-
----
-
-## 📖 User Guide
-
-### Phase 1: Upload & Data Profiling
-
-1. **Upload CSV** - Drag & drop or click to upload your sales data
-2. **Review Plan** - System analyzes your data and proposes cleaning steps:
-   - Missing value handling
-   - Duplicate removal
-   - Outlier detection
-   - Type conversions
-   - Date parsing
-
-### Phase 2: Select Cleaning Steps
-
-- **Column-wise view** - See cleaning suggestions organized by column
-- **Toggle controls** - Check/uncheck steps you want to apply
-- **Smart recommendations** - System highlights critical cleaning actions
-
-### Phase 3: KPI Detection & Selection
-
-- **Auto-detected KPIs** - System finds relevant metrics using:
-  - LLM column mapping (understands semantic meaning)
-  - Fuzzy matching (handles typos and variations)
-  - Dynamic generation (creates custom KPIs for your data)
-- **Add custom KPIs** - Define your own metrics with pandas formulas
-- **Select KPIs** - Choose which metrics to calculate
-
-### Phase 4: Report Generation
-
-- **KPI Dashboard** - View all calculated metrics
-- **Trend Analysis** - Interactive charts with forecasts
-- **AI Insights** - Executive summary with recommendations
-- **Chat Assistant** - Ask questions about your data
-- **Export PDF** - Download report for sharing
-
----
-
-## 📊 Example Use Cases
-
-### Retail Sales Analysis
-```csv
-order_id,date,product,quantity,price,customer_id
-1001,2024-01-15,Laptop,1,899.99,C001
-1002,2024-01-16,Mouse,2,25.50,C002
-```
-
-**Auto-detected KPIs:**
-- Total Revenue
-- Average Order Value
-- Unique Customers
-- Revenue by Product
-- Sales Trend
-
-### Fashion Retail
-```csv
-customer_reference_id,item_purchased,purchase_amount_(usd),date_purchase,review_rating
-REF001,Shirt,49.99,2024-01-10,4.5
-REF002,Jeans,89.99,2024-01-11,5.0
-```
-
-**Auto-detected KPIs:**
-- Total Orders
-- Average Selling Price
-- Customer Satisfaction Score
-- Revenue by Product Category
-- High-Value Transactions
-
----
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Create a `.env` file in the root directory:
-
-```properties
-# Required
-GOOGLE_API_KEY=your_gemini_api_key_here
-GEMINI_API_KEY=your_gemini_api_key_here
-
-# Optional
-PORT=8000
-FRONTEND_PORT=3000
-```
-
-### Custom KPI Definitions
-
-Edit `backend/Sales_KPI.YAML` to add your own KPI templates:
-
-```yaml
-- name: "Customer Lifetime Value"
-  columns: ["customer_id", "revenue", "date"]
-  formula: "df.groupby('customer_id')['revenue'].sum().mean()"
-  dependencies: []
-  description: "Average revenue per customer"
-  type: "numeric"
-```
+Open `http://localhost:3000` and upload `Fashion_Retail_Sales.csv` (included in repo).
 
 ---
 
 ## 📡 API Documentation
 
-### Backend Endpoints
+### Core Endpoints
 
 #### `GET /health`
 Health check endpoint.
@@ -261,6 +712,8 @@ Health check endpoint.
 }
 ```
 
+---
+
 #### `POST /api/upload`
 Upload CSV and get cleaning plan.
 
@@ -270,29 +723,40 @@ Upload CSV and get cleaning plan.
 **Response:**
 ```json
 {
-  "file_id": "unique-id",
+  "file_id": "unique-file-id",
   "cleaning_plan": {
     "columns": [
       {
         "column": "Purchase Amount",
+        "type": "numeric",
         "steps": [
           {
-            "id": "step-id",
+            "id": "fix_negative_purchase_amount",
             "action": "fix_negative",
-            "description": "Convert negative values to positive",
+            "reason": "Convert negative values to positive",
             "recommended": true
           }
-        ]
+        ],
+        "missing_count": 0,
+        "total_rows": 1000
       }
     ],
     "global_steps": [
-      {"id": "remove_duplicates", "action": "Remove duplicates", "count": 10}
+      {
+        "id": "remove_duplicates",
+        "action": "Remove duplicate rows",
+        "reason": "Found 10 duplicate rows",
+        "recommended": true,
+        "count": 10
+      }
     ]
   },
   "original_shape": [1000, 8],
-  "data_preview": [{...}]
+  "preview": [{...}]
 }
 ```
+
+---
 
 #### `POST /api/clean_and_detect_kpis`
 Apply cleaning and detect KPIs.
@@ -300,8 +764,8 @@ Apply cleaning and detect KPIs.
 **Request:**
 ```json
 {
-  "file_id": "unique-id",
-  "selected_steps": ["step-id-1", "step-id-2"]
+  "file_id": "unique-file-id",
+  "selected_steps": ["fix_negative_purchase_amount", "remove_duplicates"]
 }
 ```
 
@@ -311,14 +775,22 @@ Apply cleaning and detect KPIs.
   "detected_kpis": [
     {
       "name": "Total Revenue",
-      "description": "Sum of all sales",
-      "formula": "df['revenue'].sum()",
-      "type": "numeric"
+      "description": "Sum of all purchase amounts"
+    },
+    {
+      "name": "Average Order Value",
+      "description": "Average amount per transaction"
     }
   ],
-  "cleaning_summary": "Applied 5 cleaning steps"
+  "cleaning_logs": [
+    "Fixed 5 negative values",
+    "Removed 10 duplicates"
+  ],
+  "cleaned_shape": [985, 8]
 }
 ```
+
+---
 
 #### `POST /api/generate_report`
 Generate full report with insights.
@@ -326,12 +798,13 @@ Generate full report with insights.
 **Request:**
 ```json
 {
-  "file_id": "unique-id",
-  "selected_kpis": ["Total Revenue", "Average Order Value"],
+  "file_id": "unique-file-id",
+  "selected_kpis": ["Total Revenue", "Total Customers"],
   "custom_kpis": [
     {
-      "name": "Custom Metric",
-      "formula": "df['column'].mean()"
+      "name": "Profit Margin",
+      "formula": "(sum('Revenue') - sum('Cost')) / sum('Revenue') * 100",
+      "description": "Profit as % of revenue"
     }
   ]
 }
@@ -341,40 +814,237 @@ Generate full report with insights.
 ```json
 {
   "report": {
-    "reportTitle": "Sales Analysis Report",
-    "summary": "Executive summary...",
-    "kpis": [...],
-    "trends": [...],
-    "insights": [...],
-    "recommendations": [...]
+    "reportTitle": "Sales Performance Report",
+    "summary": "Revenue declined 11.8% from $22,961 to $20,261...",
+    "kpis": [
+      {
+        "name": "Total Revenue",
+        "value": "$20,261",
+        "description": "↓ -11.8% vs 2024-11 (was $22,961)",
+        "sparkline": [22000, 23000, 21000, 20261],
+        "formula_description": null
+      }
+    ],
+    "kpiExplanations": [
+      {
+        "icon": "📊",
+        "title": "Revenue & Sales",
+        "description": "Your Total Revenue shows how much money..."
+      }
+    ],
+    "categoricalBreakdowns": [
+      {
+        "title": "Revenue by Category",
+        "items": [
+          {"name": "Electronics", "value": "$10,000", "raw_value": 10000},
+          {"name": "Clothing", "value": "$5,000", "raw_value": 5000}
+        ],
+        "total_categories": 6,
+        "is_currency": true
+      }
+    ],
+    "trends": [
+      {
+        "title": "Total Revenue Over Time",
+        "description": "Historical trend...",
+        "chartData": [
+          {"x_axis": "2024-10-01", "y_axis": 22000},
+          {"x_axis": "2024-11-01", "y_axis": 20261}
+        ],
+        "holidays": [],
+        "anomalies": [3],
+        "insights": {
+          "trend": "downward",
+          "change": "-11.8%",
+          "peak": "23,000",
+          "low": "20,261",
+          "volatility": "moderate"
+        }
+      }
+    ],
+    "insights": [
+      "Revenue declined 11.8% despite 6.3% customer growth...",
+      "Average Purchase Value dropped 16.7% to $104..."
+    ],
+    "recommendations": [
+      "Investigate pricing strategy and product mix...",
+      "Focus on upselling to increase order value..."
+    ]
   }
 }
 ```
 
 ---
 
-## 🧪 Testing
+#### `POST /api/generate_pdf`
+Generate PDF report.
 
-### Run Tests
-
-```bash
-# Backend tests
-cd backend
-pytest tests/
-
-# Frontend tests
-cd newfrontend/new-frontend
-npm test
+**Request:**
+```json
+{
+  "file_id": "unique-file-id",
+  "report_data": "{...full report JSON...}"
+}
 ```
 
-### Test with Sample Data
+**Response:** PDF file download
 
-A sample CSV (`Fashion_Retail_Sales.csv`) is included for testing:
+---
 
-```bash
-# Upload sample data
-curl -X POST http://localhost:8000/api/upload \
-  -F "file=@Fashion_Retail_Sales.csv"
+#### `GET /api/custom_kpi/columns/{file_id}`
+Get available columns for custom KPI builder.
+
+**Response:**
+```json
+{
+  "columns": {
+    "numeric": ["Revenue", "Price", "Quantity"],
+    "countable": ["Order ID", "Customer ID", "Category"],
+    "all": ["Revenue", "Price", "Quantity", "Order ID", "Category"]
+  },
+  "templates": [
+    {
+      "name": "Average Order Value",
+      "formula": "sum('revenue') / count('order_id')",
+      "description": "Total revenue divided by number of orders"
+    }
+  ]
+}
+```
+
+---
+
+#### `POST /api/custom_kpi/calculate/{file_id}`
+Calculate a custom KPI.
+
+**Request:**
+```json
+{
+  "kpi_name": "Profit Margin",
+  "formula": "(sum('Revenue') - sum('Cost')) / sum('Revenue') * 100"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "kpi": {
+    "name": "Profit Margin",
+    "value": 35.5,
+    "formula": "(sum('Revenue') - sum('Cost')) / sum('Revenue') * 100",
+    "description": "Calculates sum, using columns: Revenue, Cost"
+  }
+}
+```
+
+---
+
+## 📦 Project Structure
+
+```
+datamind/
+├── backend/
+│   ├── agent/
+│   │   └── business_analyst_agent.py      # LangGraph workflow (7 nodes)
+│   │
+│   ├── modules/
+│   │   ├── Cleaning_Module/
+│   │   │   └── statistical_cleaner.py     # Auto-cleaning logic
+│   │   │
+│   │   ├── KPI_Module/
+│   │   │   ├── KPI_Engine.py              # LLM mapping + calculation
+│   │   │   ├── KPI_Detection.py           # Hybrid detection
+│   │   │   └── llm_kpi_generator.py       # Dynamic KPI generation
+│   │   │
+│   │   ├── Trend_Extractor/
+│   │   │   └── Trend_Extraction.py        # Prophet forecasting
+│   │   │
+│   │   ├── Insights_Generator/
+│   │   │   └── generate_insights.py       # Gemini insights
+│   │   │
+│   │   └── custom_kpi_calculator.py       # Safe formula evaluation
+│   │
+│   ├── server/
+│   │   └── integrated_api.py              # FastAPI endpoints
+│   │
+│   ├── models/
+│   │   └── gemini.py                      # Gemini LLM client
+│   │
+│   ├── utils/
+│   │   ├── generate_pdf_reports_v2.py     # PDF generation (ReportLab)
+│   │   ├── seasonal_analysis.py           # Holiday detection
+│   │   └── time_period_detection.py       # Auto-detect periods
+│   │
+│   └── Sales_KPI.YAML                     # Pre-defined KPIs
+│
+├── newfrontend/new-frontend/
+│   ├── components/
+│   │   ├── FileUpload.tsx                 # Upload UI
+│   │   ├── CleaningPlanView.tsx           # Step selector
+│   │   ├── KPISelectionWithCustom.tsx     # KPI picker
+│   │   ├── CustomKPIModal.tsx             # Formula builder
+│   │   ├── ReportView.tsx                 # Main report display
+│   │   ├── KPICard.tsx                    # Individual KPI card
+│   │   ├── Chart.tsx                      # Trend visualization
+│   │   └── Sparkline.tsx                  # Mini trend graph
+│   │
+│   ├── services/
+│   │   └── backendService.ts              # API client
+│   │
+│   ├── types.ts                           # TypeScript interfaces
+│   ├── App.tsx                            # Main app component
+│   └── index.css                          # Tailwind config
+│
+├── Fashion_Retail_Sales.csv               # Sample dataset
+├── requirements.txt                       # Python dependencies
+├── .env                                   # Environment variables (create this)
+├── .gitignore                             # Git ignore rules
+└── README.md                              # This file
+```
+
+---
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Create a `.env` file in the root directory:
+
+```properties
+# Required - Gemini API Key
+GOOGLE_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Optional
+PORT=8000
+FRONTEND_PORT=3000
+```
+
+### Custom KPI Definitions
+
+Edit `backend/Sales_KPI.YAML` to add pre-defined KPIs:
+
+```yaml
+- name: "Customer Lifetime Value"
+  columns: ["customer_id", "revenue"]
+  formula: "df.groupby('customer_id')['revenue'].sum().mean()"
+  dependencies: []
+  description: "Average revenue per customer"
+  type: "numeric"
+  category: "customer"
+```
+
+### Gemini Model Configuration
+
+Edit `backend/models/gemini.py` to change model:
+
+```python
+# Default: gemini-1.5-pro
+MODEL_NAME = "gemini-1.5-pro"
+
+# For faster responses:
+MODEL_NAME = "gemini-1.5-flash"
 ```
 
 ---
@@ -385,25 +1055,31 @@ curl -X POST http://localhost:8000/api/upload \
 
 **Port already in use:**
 ```bash
-lsof -i :8000
-kill -9 $(lsof -t -i :8000)
+lsof -ti :8000 | xargs kill -9
 ```
 
 **API key not detected:**
-- Ensure `.env` file is in the root directory
-- Check that both `GOOGLE_API_KEY` and `GEMINI_API_KEY` are set
+- Ensure `.env` file is in root directory
+- Check both `GOOGLE_API_KEY` and `GEMINI_API_KEY` are set
 - Restart backend after updating `.env`
 
-**KPI detection returns 0:**
-- Verify CSV has proper column headers
-- Check that data types are recognized (dates, numbers)
-- LLM will auto-generate KPIs if matching fails
+**KPI detection slow:**
+- This is expected on first run (LLM call)
+- Should be 2-4 seconds for most datasets
+- Check internet connection
+
+**Custom KPI fails:**
+```
+Error: Cannot use sum() on non-numeric column
+```
+- Use `count()` or `nunique()` for text columns
+- Use `sum()/avg()/min()/max()` only for numeric columns
 
 ### Frontend Issues
 
 **CORS errors:**
-- Backend must be running on `http://localhost:8000`
-- Check CORS configuration in `backend/server/integrated_api.py`
+- Backend must run on `http://localhost:8000`
+- Check CORS config in `backend/server/integrated_api.py`
 
 **Build errors:**
 ```bash
@@ -412,6 +1088,11 @@ rm -rf node_modules package-lock.json
 npm install
 ```
 
+**Report not generating:**
+- Check browser console (F12) for errors
+- Verify backend is running and accessible
+- Check backend terminal for error logs
+
 ---
 
 ## 🔒 Security Notes
@@ -419,89 +1100,24 @@ npm install
 ⚠️ **Development Mode:**
 - CORS is open (`allow_origins=["*"]`)
 - No authentication required
+- Data stored in memory (not persistent)
 - API keys in `.env` file
 
 ✅ **Production Recommendations:**
 - Restrict CORS to specific domains
 - Add authentication (JWT, OAuth)
-- Use environment secrets (AWS Secrets Manager, etc.)
+- Use environment secrets (AWS Secrets Manager)
 - Enable HTTPS
 - Add rate limiting
-- Implement file size limits
-
----
-
-## 📦 Project Structure
-
-```
-AI-Sales-Data-Analyst/
-├── backend/
-│   ├── agent/
-│   │   └── business_analyst_agent.py    # LangGraph workflow
-│   ├── modules/
-│   │   ├── Cleaning_Module/
-│   │   │   └── statistical_cleaner.py   # Auto-cleaning logic
-│   │   ├── KPI_Module/
-│   │   │   ├── KPI_Engine.py            # KPI matching & calculation
-│   │   │   ├── KPI_Detection.py         # Hybrid detection
-│   │   │   └── llm_kpi_generator.py     # AI KPI generation
-│   │   ├── Trend_Extractor/
-│   │   │   └── Trend_Extraction.py      # Prophet forecasting
-│   │   └── Insights_Generator/
-│   │       └── generate_insights.py     # Gemini insights
-│   ├── server/
-│   │   └── integrated_api.py            # FastAPI endpoints
-│   ├── Sales_KPI.YAML                   # KPI definitions
-│   └── utils/                           # Helper functions
-├── newfrontend/
-│   └── new-frontend/
-│       ├── components/
-│       │   ├── FileUpload.tsx           # Upload UI
-│       │   ├── CleaningPlanView.tsx     # Cleaning step selector
-│       │   ├── KPISelectionWithCustom.tsx # KPI selector
-│       │   └── ReportView.tsx           # Report display
-│       ├── services/
-│       │   └── backendService.ts        # API client
-│       ├── types.ts                     # TypeScript interfaces
-│       └── App.tsx                      # Main app component
-├── Fashion_Retail_Sales.csv             # Sample data
-├── requirements.txt                     # Python dependencies
-├── .env                                 # Environment variables (create this)
-├── .gitignore                           # Git ignore rules
-└── README.md                            # This file
-```
-
----
-
-## 🚧 Roadmap
-
-- [ ] Multi-file upload support
-- [ ] Database integration (PostgreSQL, MongoDB)
-- [ ] Real-time data streaming
-- [ ] Advanced visualizations (D3.js)
-- [ ] User authentication & workspaces
-- [ ] Scheduled reports
-- [ ] Email notifications
-- [ ] Mobile app
-- [ ] Cloud deployment templates (AWS, Azure, GCP)
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+- Implement file size limits (max 10MB)
+- Add input validation
+- Use database for persistence
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ---
 
@@ -510,7 +1126,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Azka Aqeel**
 
 - GitHub: [@azkaaqeel](https://github.com/azkaaqeel)
-- Repository: [AI-Sales-Data-Analyst](https://github.com/azkaaqeel/AI-Sales-Data-Analyst)
+- Repository: [datamind](https://github.com/azkaaqeel/datamind)
 
 ---
 
@@ -519,18 +1135,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Google Gemini](https://ai.google.dev/) - LLM for intelligent analysis
 - [Meta Prophet](https://facebook.github.io/prophet/) - Time-series forecasting
 - [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
-- [React](https://reactjs.org/) - Frontend library
 - [LangGraph](https://github.com/langchain-ai/langgraph) - Agent workflow framework
-
----
-
-## 📞 Support
-
-If you encounter any issues or have questions:
-
-1. Check the [Troubleshooting](#-troubleshooting) section
-2. Search [existing issues](https://github.com/azkaaqeel/AI-Sales-Data-Analyst/issues)
-3. Create a [new issue](https://github.com/azkaaqeel/AI-Sales-Data-Analyst/issues/new)
+- [React](https://reactjs.org/) - Frontend library
+- [Tailwind CSS](https://tailwindcss.com/) - Styling framework
 
 ---
 
